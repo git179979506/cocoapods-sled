@@ -58,7 +58,7 @@ module Pod
             # Installer.sled_reuse_type = :device
             return unless Installer.sled_should_resure?
 
-            UI.section "查找#{Installer.sled_reuse_type_desc} Sled 缓存" do
+            UI.section "查找#{Installer.sled_reuse_type_desc}二进制缓存" do
                 sled_reuse_action
             end
         end
