@@ -127,10 +127,10 @@ $ bundle exec pod install device
 
 每次修改 Podfile 比较麻烦，而且多人协作会互相影响，可以使用命令行参数规避这个问题。
 
-`--all-binary` 和 `--disable-binary-pods` 组合使用，忽略 Podfile 中的 `:binary => false` 配置，指定 pod 库关闭二进制。
+`--all-binary` 和 `--no-binary-pods` 组合使用，忽略 Podfile 中的 `:binary => false` 配置，指定 pod 库关闭二进制。
 
 ```bash
-$ bundle exec pod install device --all-binary --disable-binary-pods=SledLogin,SledRoute
+$ bundle exec pod install device --all-binary --no-binary-pods=SledLogin,SledRoute
 ```
 
 #### case2: 切换到模拟器调试
@@ -138,7 +138,7 @@ $ bundle exec pod install device --all-binary --disable-binary-pods=SledLogin,Sl
 因为我们之前使用的是真机二进制缓存，所以需要重新执行命令手动切换到模拟器
 
 ```bash
-$ bundle exec pod install simulator --all-binary --disable-binary-pods=SledLogin,SledRoute
+$ bundle exec pod install simulator --all-binary --no-binary-pods=SledLogin,SledRoute
 ```
 
 ## Contributing
