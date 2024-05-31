@@ -171,3 +171,12 @@ The gem is available as open source under the terms of the [MIT License](https:/
 ## Code of Conduct
 
 Everyone interacting in the Cocoapods::Sled project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/git179979506/cocoapods-sled/blob/main/CODE_OF_CONDUCT.md).
+
+## 补充
+
+喜欢就star❤️一下吧
+
+QQ交流群：692296661
+
+<img src="./resource/二维码.jpg" width="300" height="303" alt="交流群">
+
