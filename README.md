@@ -1,164 +1,49 @@
-# Cocoapods-sled
+## 简介
+Cocoapods-sled 是一个简单易用的 Cocoapods 插件，通过缓存和复用Xcode编译结果完成二进制化。它的特性：
 
-Cocoapods-sled 是一个简单易用的 Cocoapods 插件，通过缓存和复用Xcode编译结果完成二进制化提升项目构建速度。它的特性：
-  
-  1. **低接入成本**：即插即用，无需复杂的配置和基建即可开始优化构建流程。
-  2. **编译结果缓存**：自动将Xcode编译结果缓存到`~/Caches/CocoaPods/Frameworks`目录下，不用预编译。
-  3. **二进制化处理**：自动将可复用的 pod 转换为二进制，源码和二进制丝滑切换。 
-  
-  Cocoapods-sled 致力于成为iOS项目构建优化的首选工具，帮助开发者以更低的成本实现更高效的开发流程。
+1.  **低接入成本**：即插即用，没有预编译，也不用双私有源等基建，维护成本低。
+2.  **本地缓存**：给未匹配到二进制的 pod 插入同步脚本，当 Xcode 执行构建任务时将编译结果缓存到`~/Caches/CocoaPods/Frameworks`目录下。缓存区分真机和模拟器。
+3.  **二进制化处理**：自动将可复用的 pod 转换为二进制，源码和二进制丝滑切换。
+
+Cocoapods-sled 致力于成为iOS项目构建优化的首选工具之一，帮助开发者以更低的成本实现更高效的开发流程。
+
+## 实现思路
+Xcode 本身有自己的编译缓存 DerivedData，但经常会失效。Cocoapods-sled 插件会把 DerivedData 中的编译结果缓存，当 install 时匹配到缓存就改写 spec 把源码替换为二进制，从而避免不必要的重复编译。当执行`pod install [device | simulator]`时，大概执行了以下操作：
+
+1. 原`pod install`流程，Downloading dependencies 执行完毕后插入二进制逻辑
+2. 为每个 pod 生成缓存路径
+3. 去对应的缓存路径下查找是否存在缓存
+  - 缓存命中：把源码替换为二进制，并进行一些可选的操作，比如生产 Header Search Path 等
+  - 未命中缓存：在 Pod Target 的 `Build Phases`中插入同步脚本，从 DerivedData 提取编译结果缓存到`~/Caches/CocoaPods/Frameworks`目录下，等待下次复用
+4. 继续执行`pod install`流程，从 Generating Pods project 开始
 
 ## 安装
+Cocoapods-sled 的安装过程非常简洁。你可以通过以下两种方式之一进行安装：
 
-在您的应用程序的 Gemfile 中添加以下行：
+1.  在应用程序的Gemfile中添加以下行:
 
-```ruby
-gem 'cocoapods-sled'
-```
+    ```ruby
+    gem 'cocoapods-sled'
+    ```
+    然后运行`bundle install`
 
-然后执行：
-
-    $ bundle install
-
-或者自行安装：
-
-    $ gem install cocoapods-sled
+2.  直接在终端中执行`gem install cocoapods-sled`命令进行安装。
 
 ## 使用方法
 
-### 获取帮助文档
-
-    $ bundle exec pod install --help
-    $ bundle exec pod install device --help
-    $ bundle exec pod install simulator --help
-
-### 缓存和复用真机编译结果
-
-使用 `device` 子命令查找真机二进制缓存。
-
-缓存命中时使用二进制替换源码，缓存未命中时会自动生成编译结果同步脚本，同步本次编译结果到缓存目录供下次使用。
-
-默认所有 pod 都开启二进制，可以在命令行或 Podfile 中指定 pod 关闭二进制。
-
-    $ bundle exec pod install device
-
-### 缓存和复用模拟器编译结果
-
-使用 `simulator` 子命令查找模拟器二进制缓存。
-
-缓存命中时使用二进制替换源码，缓存未命中时会生成编译结果同步脚本，同步本次编译结果到缓存目录供下次使用。
-
-默认所有 pod 都开启二进制，可以在命令行或 Podfile 中指定 pod 关闭二进制。
-
-    $ bundle exec pod install simulator
-
-### 全部使用源码
-
-不使用 `device` 和 `simulator` 子命令，则执行原 install 流程，全部使用源码
-
-    $ bundle exec pod install
-
-
-### 命令行参数说明
-
-- `--no-binary-pods=name`: 禁用指定的 Pod 二进制缓存，多个 Pod 名称用","分隔，优先级高于 `--all-binary`
-- `--all-binary`: 强制使用二进制缓存，忽略 Podfile 中 `:binary => false` 设置
-- `--header-search-path`: 生成 Header Search Path，一般用于打包机
-- `--project=name`: 工程名称，用于生成framework缓存目录，区分多个工程的缓存
-- `--no-dev-pod`: 关闭 Development Pods 二进制缓存，默认是开启的
-- `--force-sync-dev-pod`: 强制缓存 Development Pods 编译结果，忽略本地修改检查，默认本地有修改时不缓存，一般用于打包机
-- `--inhibit-all-warnings`: 强制关闭警告，忽略 Podfile 中的配置，一般用于打包机
-- `--cache-limit=num`: 指定每个 Pod 缓存存储上限数量，小于 3 无效，一般用于打包机
-- `--dep-check=[single|all]`: 检查依赖库版本是否发生变更，single：只检查直接依赖，all：检查全部依赖，一般用于打包机
-- `--check-xcode-version`: 检查xcode版本，不同版本打包不复用，使用 `xcodebuild -version` 获取版本信息，一般用于打包机
-- `--configuration=[Debug|Release|自定义]`: 编译配置用于生产缓存路径(Debug、Release、自定义)，不传则不区分共用，一般用于打包机
-
-### Podfile 配置说明
-
-安装 `cocoapods-sled` 插件后，通过 `device` 和 `simulator` 子命令就可以触发二进制缓存复用逻辑，不配置 Podfile 也可以正常工作，在 Podfile 中的一些固定配置可以简化命令行参数。
-
-比如可以配置生成 Header Search Paths：`sled_enable_generate_header_search_paths!`，这样命令行就可以省略参数 `--header-search-path`。
-
-Podfile 中的配置不会影响打包机打包，打包机上可通过参数 `--all-binary` 配置所有 pod 强制启用二进制。
-
-```ruby
-# 声明需要使用插件 cocoapods-sled
-plugin 'cocoapods-sled' 
-
-# 标记生成 HEADER SEARCH PATHS
-# 用于适配OC使用 #import "" 导入库头文件的情况，默认不生成
-# 单个库可通过 :hsp => true | false 设置
-sled_enable_generate_header_search_paths! 
-
-# 关闭 Development Pod 二进制缓存，默认开启
-sled_disable_binary_cache_for_dev_pod! 
-
-# 与 :binary => :ignore 等效，用于没有明确依赖的库
-sled_disable_binary_pods 'MOBFoundation', 'Bugly' 
-
-pod 'RxSwift', :binary => false # 关闭二进制（标记 --all-binary 时忽略该值）
-pod 'RxCocoa', :binary => true # 开启二进制（默认为开启，可省略）
-pod 'Bugly', :binary => :ignore # 忽略，二进制不做处理（一般用于三方库本身就是二进制的情况，避免出现异常情况，优先级高于 --all-binary）
-
-pod 'QMUIKit', :hsp => true # 生成 HEADER SEARCH PATHS，默认不生成
-```
-
-### 示例
-
-#### case1: 开发 SledLogin 和 SledRoute 组件库，使用真机调试
-
-##### 方案一
-
-1. 修改 Podfile，关闭 SledLogin 和 SledRoute 的二进制
-
-```ruby
-pod 'SledLogin', :path => '../SledLogin', :binary => false # Development Pod
-pod 'SledRoute', :commit => 'f02079ae', :git => "#{BASE}/SledRoute", :binary => false # External Pod
-pod 'RxSwift', '6.7.0', :binary => false # Release Pod
-```
-    
-2. 执行命令查找真机缓存
-
-```bash
-$ bundle exec pod install device
-```
-
-##### 方案二（推荐）
-
-每次修改 Podfile 比较麻烦，而且多人协作会互相影响，可以使用命令行参数规避这个问题。
-
-`--all-binary` 和 `--no-binary-pods` 组合使用，忽略 Podfile 中的 `:binary => false` 配置，指定 pod 库关闭二进制。
-
-```bash
-$ bundle exec pod install device --all-binary --no-binary-pods=SledLogin,SledRoute
-```
-
-#### case2: 切换到模拟器调试
-
-因为我们之前使用的是真机二进制缓存，所以需要重新执行命令手动切换到模拟器
-
-```bash
-$ bundle exec pod install simulator --all-binary --no-binary-pods=SledLogin,SledRoute
-```
+[详见文档](./documents/usage.md)
 
 ## 常见问题
 
-### 1. ARC不对齐问题
+[详见文档](./documents/QA.md)
 
-**描述**：参考[得物 iOS 工程演进之路](https://mp.weixin.qq.com/s/Lr6tDxacQKGZ19cKdmNg1w),全工程编译产物制作：利用编译缓存，从 Xcode 编译缓存 DerivedData 中取出组件。可能会产生ARC不对齐问题，导致 EXC_BAD_ACCESS Crash，具体原因请查看文档。
+## 补充
 
-**解决方案**：使用`--dep-check=[single|all]`参数，实际测试`--dep-check=single`可解决上述偶发问题，但受限于样本量较少，不保证测试结果准确性。
+喜欢就star❤️一下吧
 
-### 2. #import "" 方式导入的头文件找不到
-**解决方案**：
-1. 命令行使用`--header-search-path`标记，所有 Pod 都会生成 Header Search Path
-2. Podfile配置`sled_enable_generate_header_search_paths!`，所有 Pod 都会生成 Header Search Path
-3. 单个 Pod 配置 `pod 'xxx', :hsp => true`，指定 Pod 生成 Header Search Path
+QQ交流群：692296661
 
-### 3. The 'Pods-xxx' target has transitive dependencies that include statically linked binaries: 
-**描述**：可能是在 Podfile 中重写了 `build_as_static_framework?` `build_as_dynamic_framework?`等方法，但是没有修改 `@build_type`属性，`verify_no_static_framework_transitive_dependencies` 执行时，需要编译的 pod 库都按照修改前的 build_type 检查，导致判断有问题报错：动态库不能依赖静态库。
-
-**解决方案**：正确修改 `@build_type` 属性，或者使用 Cocoapods 提供的方法声明 Pod 为静态库或动态库，`use_frameworks! :linkage => :static`
+<img src="./resource/QRCode.jpg" width="300" height="303" alt="交流群">
 
 ## Contributing
 
@@ -171,12 +56,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 ## Code of Conduct
 
 Everyone interacting in the Cocoapods::Sled project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/git179979506/cocoapods-sled/blob/main/CODE_OF_CONDUCT.md).
-
-## 补充
-
-喜欢就star❤️一下吧
-
-QQ交流群：692296661
-
-<img src="./resource/二维码.jpg" width="300" height="303" alt="交流群">
 
