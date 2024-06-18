@@ -84,6 +84,11 @@ module Pod
                 disable_binary_pod_targets << target.name unless Pod::Installer.sled_force_binary || target.sled_enable_binary?
                 next unless Pod::Installer.sled_force_binary || target.sled_enable_binary?
 
+                if Podfile::DSL.sled_enable_binary_pods.count > 0
+                    disable_binary_pod_targets << target.name unless Podfile::DSL.sled_enable_binary_pods.include?(target.root_spec.name)
+                    next unless Podfile::DSL.sled_enable_binary_pods.include?(target.root_spec.name)
+                end
+
                 root_spec = target.root_spec
 
 

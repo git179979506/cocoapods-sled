@@ -3,7 +3,7 @@ require_relative '../tool'
 VALID_DEPENDENCY_CHECK_TYPE = %i(default single all).freeze
 DEFAULT_CONFIGURATION = "Sled-Common"
 
-module Pod    
+module Pod
     class Podfile
         module DSL
 
@@ -22,7 +22,12 @@ module Pod
             def sled_disable_binary_pods(*names)
                 DSL.sled_disable_binary_pods ||= []
                 DSL.sled_disable_binary_pods.concat(names)
-            end 
+            end
+
+            def sled_enable_binary_pods(*names)
+                DSL.sled_enable_binary_pods ||= []
+                DSL.sled_enable_binary_pods.concat(names)
+            end
 
             private
             # 开启二进制缓存(默认开启，暂时不支持修改)
@@ -42,6 +47,9 @@ module Pod
 
             class_attr_accessor :sled_disable_binary_pods
             self.sled_disable_binary_pods = []
+
+            class_attr_accessor :sled_enable_binary_pods
+            self.sled_enable_binary_pods = []
 
             class_attr_accessor :dependency_check_type
             self.dependency_check_type = :default

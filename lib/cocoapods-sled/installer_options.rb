@@ -23,7 +23,7 @@ module Pod
       sled_reuse_type && KNOWN_REUSE_OPTIONS.include?(sled_reuse_type)
     end
 
-    def self.sled_reuse_type_name       
+    def self.sled_reuse_type_name
       case sled_reuse_type
       when :device then
         "#{Podfile::DSL.sled_configuration}-iphoneos"
@@ -34,7 +34,7 @@ module Pod
       end
     end
 
-    def self.sled_reuse_type_desc 
+    def self.sled_reuse_type_desc
       case sled_reuse_type
       when :device then
         "真机"
