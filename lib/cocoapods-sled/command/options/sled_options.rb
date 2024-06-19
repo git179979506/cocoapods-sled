@@ -48,7 +48,7 @@ module Pod
           if argv.flag?('header-search-path', false)
             Podfile::DSL.sled_enable_generate_header_search_paths = true
           end
-          if argv.flag?('no-dev-pod', false)
+          unless argv.flag?('dev-pod', true)
             Podfile::DSL.sled_disable_binary_cache_for_dev_pod = true
           end
           if argv.flag?('force-sync-dev-pod', false)

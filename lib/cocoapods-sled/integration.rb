@@ -90,7 +90,7 @@ module Pod
                 sled_totalTargets << target.name 
                 
                 if target.sled_local?
-                    return if Podfile::DSL.sled_disable_binary_cache_for_dev_pod
+                    next if Podfile::DSL.sled_disable_binary_cache_for_dev_pod
                     sled_modify_pod_target(target)
                 else
                     sled_modify_pod_target(target)
@@ -132,7 +132,7 @@ module Pod
             pod_root = sandbox.pod_dir(root_spec.name)
 
             framework_dir_path = path + target.sled_framework_cache_subpath(Installer.sled_reuse_type_name)
-            framework_file_path = framework_dir_path + target.product_name  
+            framework_file_path = framework_dir_path + target.product_name
         
             if framework_file_path.directory?
                 path.utime(Time.now, Time.now)
