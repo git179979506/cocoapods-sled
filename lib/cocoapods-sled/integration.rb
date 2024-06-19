@@ -147,12 +147,14 @@ module Pod
                 framework_dir_relative_path = framework_dir_path.relative_path_from(pod_root)
                 framework_file_relative_path = framework_file_path.relative_path_from(pod_root)
 
-                target.specs.each do |spec|
-
-                    sled_empty_source_files(spec)
-                    sled_add_vendered_framework(spec, framework_file_relative_path.to_s)
-                    sled_replace_resource_bundles(spec, framework_dir_relative_path.to_s)
-                    sled_add_header_search_paths(spec, target, framework_file_path.to_s)
+                if target.specs && !target.specs.empty?
+                    target.specs.each do |spec|
+                        sled_empty_source_files(spec)
+                        sled_replace_resource_bundles(spec, framework_dir_relative_path.to_s)
+                        sled_add_header_search_paths(spec, target, framework_file_path.to_s)
+                    end
+    
+                    sled_add_vendered_framework(target.specs.first, framework_file_relative_path.to_s)
                 end
             else
                 @sled_miss << target.name
@@ -188,7 +190,7 @@ module Pod
 
             # spec.attributes_hash["source_files"] = framework_file_path + '/Headers/*.h'
             # spec.attributes_hash["public_header_files"] = framework_file_path + '/Headers/*.h'
-            spec.attributes_hash["subspecs"] = nil
+            # spec.attributes_hash["subspecs"] = nil
         end
 
         # source_files 置空
