@@ -36,12 +36,16 @@ bundle exec pod install
 
     *日常开发中，可以和`--all-binary`配合使用，忽略 Podfile 配置，并指定 pod 使用源码进行开发，避免 Podfile 同时提交协作冲突*
 
+- `--binary-pods=pod1,pod2`: 只对指定的 Pod 进行二进制缓存，多个 Pod 名称用","分隔，优先级最高
+
+    *白名单模式，优先级最高，只为特定 Pod 开启二进制缓存*
+
 - `--all-binary`: 强制使用二进制缓存，忽略 Podfile 中 `:binary => false` 设置
 
     *跟`--no-binary-pods=name`配合使用，或者在打包机中忽略 Podfile 配置强制开启二进制*
-    
+
 - `--configuration=[Debug|Release|自定义]`: 编译配置用于生产缓存路径(Debug、Release、自定义)，不传则不区分共用，一般用于打包机
-    
+
     *对应 Xcode Build Configuration，支持自定义，当不传此参数时所有configuration产物共用，一般在打包机才需要区分不同 configuration，避免出现Debug、Release环境混乱。*
 
 - `--header-search-path`: 生成 Header Search Path，一般用于打包机
@@ -98,6 +102,9 @@ sled_disable_binary_cache_for_dev_pod!
 
 # 与 :binary => :ignore 等效，用于没有明确依赖的库
 sled_disable_binary_pods 'MOBFoundation', 'Bugly'
+
+# 白名单模式，优先级最高。只为 RxSwift 开启二进制缓存
+sled_enable_binary_pods 'RxSwift'
 
 pod 'RxSwift', :binary => false # 关闭二进制（标记 --all-binary 时忽略该值）
 pod 'RxCocoa', :binary => true # 开启二进制（默认为开启，可省略）

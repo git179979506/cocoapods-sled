@@ -10,6 +10,7 @@ module Pod
           def options
             [
               ['--no-binary-pods=name', '禁用指定的 Pod 二进制缓存，多个 Pod 名称用","分隔, 优先级高于 --all-binary'],
+              ['--binary-pods=name', '启用指定的 Pod 二进制缓存，多个 Pod 名称用","分隔, 优先级最高'],
               ['--all-binary', '强制使用二进制缓存，忽略 Podfile 中 `:binary` 设置'],
               ['--header-search-path', '生成 Header Search Path，一般用于打包机'],
               ['--project=name', '工程名称，用于生成framework缓存目录，区分多个工程的缓存'],
@@ -30,6 +31,7 @@ module Pod
 
         def initialize(argv)
           Podfile::DSL.sled_disable_binary_pods = argv.option('no-binary-pods', '').split(',')
+          Podfile::DSL.sled_enable_binary_pods = argv.option('binary-pods', '').split(',')
           count = argv.option('cache-limit', '').to_i
           if !count.nil? && count >= 3 
             FrameworkCache.sled_cache_limit = count
