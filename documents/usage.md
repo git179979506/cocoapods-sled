@@ -36,7 +36,7 @@ bundle exec pod install
 
     *日常开发中，可以和`--all-binary`配合使用，忽略 Podfile 配置，并指定 pod 使用源码进行开发，避免 Podfile 同时提交协作冲突*
 
-- `--binary-pods=name`: 禁用指定的 Pod 二进制缓存，多个 Pod 名称用","分隔，优先级高于 `--all-binary`
+- `--binary-pods=pod1,pod2`: 只对指定的 Pod 进行二进制缓存，多个 Pod 名称用","分隔，优先级最高
 
     *白名单模式，优先级最高，只为特定 Pod 开启二进制缓存*
 
